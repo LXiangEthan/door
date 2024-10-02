@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethan的个人门户</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="content-frame" src="" frameborder="0"></iframe>
+
+    <script src="config.js"></script>
+    <script>
+        const pageConfig = {
+            mobile: {
+                maxWidth: 480,
+                src: 'pages/mobile.html'
+            },
+            wide_mobile: {
+                maxWidth: 768,
+                src: 'pages/wide_mobile.html'
+            },
+            desktop: {
+                maxWidth: Infinity,
+                src: 'pages/pc.html'
+            }
+        };
+
+        function loadAppropriateContent() {
+            const frame = document.getElementById('content-frame');
+            const width = window.innerWidth;
+
+            for (const [device, config] of Object.entries(pageConfig)) {
+                if (width <= config.maxWidth) {
+                    frame.src = config.src;
+                    break;
+                }
+            }
+        }
+
+        loadAppropriateContent();
+        window.addEventListener('resize', loadAppropriateContent);
+    </script>
+</body>
+</html>

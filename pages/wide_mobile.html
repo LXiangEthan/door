@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人门户 - Ethan（移动端）</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            height: 100%;
+            overflow: hidden;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        body.day-mode {
+            background: #f0f0f0;
+            color: #333;
+        }
+        body.night-mode {
+            background: #000;
+            color: #fff;
+        }
+        #canvas-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .container {
+            position: relative;
+            z-index: 2;
+            padding: 20px;
+            box-sizing: border-box;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .gradient-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+        .day-mode .gradient-text {
+            background-image: linear-gradient(45deg, #00ff00, #0000ff);
+        }
+        .night-mode .gradient-text {
+            background-image: linear-gradient(45deg, #ffff00, #ff0000);
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 1.2em;
+            max-width: 600px;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .links {
+            margin-top: 30px;
+        }
+        .links a {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            background-size: 200% 100%;
+            background-position: 100% 0;
+        }
+        .day-mode .links a {
+            background-image: linear-gradient(to right, #4CAF50, #2196F3 50%, #e0e0e0 50%);
+            color: #333;
+        }
+        .night-mode .links a {
+            background-image: linear-gradient(to right, #FF4500, #FFA500 50%, #333 50%);
+            color: #fff;
+        }
+        .links a:hover {
+            transform: translateY(-3px);
+            background-position: 0 0;
+        }
+        .day-mode .links a:hover {
+            color: white;
+        }
+        .night-mode .links a:hover {
+            color: black;
+        }
+        #mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .day-mode #mode-toggle {
+            background-color: #333;
+        }
+        .night-mode #mode-toggle {
+            background-color: #fff;
+        }
+        #mode-toggle .icon {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.5s ease;
+        }
+        .day-mode #mode-toggle .icon {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/></svg>') no-repeat center center;
+        }
+        .night-mode #mode-toggle .icon {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z"/></svg>') no-repeat center center;
+        }
+        #avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 20px;
+            display: block;
+        }
+    </style>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"> 
+</head>
+<body class="day-mode">
+    <canvas id="canvas-background"></canvas>
+    <button id="mode-toggle"><div class="icon"></div></button>
+    <div class="container">
+        <img id="avatar" src="https://ethanliang.top/upload/20171014085116_A38Qr-wgme.png" alt="头像">
+        <h1 class="gradient-text">Ethan</h1>
+        <p class="gradient-text">网站开发者 | 编程爱好者 | 技术工作者</p>
+        <p class="gradient-text">欢迎来到我的个人门户网站，我是一位个人开发者，如果你对我感兴趣，可以通过下面路径了解我，我们一起钻研技术，一起学习，一起探讨问题，如果你对其他的感兴趣我们也可以聊一聊</p>
+        <div class="links">
+            <a href="https://github.com/LXiangEthan" target="_blank">GitHub</a>
+            <a href="https://alist.ethanliang.top" target="_blank">Alist</a>
+            <a href="https://hexo.ethanliang.top" target="_blank">生活日记</a>
+            <a href="https://ethanliang.top" target="_blank">个人博客</a>
+            <a href="https://notion.ethanliang.top" target="_blank">notion分享</a>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas-background');
+        const ctx = canvas.getContext('2d');
+
+        let planets = [];
+        const baseSize = 5;
+        const minSize = 1 * baseSize;
+        const maxSize = 7 * baseSize;
+        const G = 0.00001;
+
+        // 预加载图片
+        const planetImages = [
+            '../img/小行星.svg', // 最小的行星
+            '../img/地球.svg',
+            '../img/海王星.svg',
+            '../img/木星.svg',
+            '../img/太阳.svg'  // 最大的行星
+        ].map(src => {
+            const img = new Image();
+            img.src = src;
+            return img;
+        });
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        class Planet {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                const sizeRandom = Math.random();
+                if (sizeRandom < 0.2) { // 20% 的概率是小球
+                    this.size = minSize;
+                    this.imageIndex = 0;
+                } else if (sizeRandom < 0.9) { // 70% 的概率是中等大小的球
+                    this.size = Math.random() * (maxSize - minSize) * 0.6 + minSize * 1.5; // 调整中等大小的范围
+                    this.imageIndex = Math.floor((sizeRandom - 0.2) / 0.7 * 3) + 1; // 1, 2, or 3
+                } else { // 10% 的概率是大球
+                    this.size = maxSize;
+                    this.imageIndex = 4;
+                }
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.mass = this.size * this.size;
+                this.orbitingAround = null;
+                this.orbitAngle = 0;
+                this.orbitSpeed = 0;
+                this.orbitRadius = 0;
+            }
+
+            update() {
+                if (this.orbitingAround) {
+                    this.orbit();
+                } else {
+                    this.move();
+                    this.checkBoundaries();
+                }
+            }
+
+            move() {
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            orbit() {
+                this.orbitAngle += this.orbitSpeed;
+                this.x = this.orbitingAround.x + Math.cos(this.orbitAngle) * this.orbitRadius;
+                this.y = this.orbitingAround.y + Math.sin(this.orbitAngle) * this.orbitRadius;
+            }
+
+            checkBoundaries() {
+                if (this.x - this.size < 0 || this.x + this.size > canvas.width) this.vx *= -1;
+                if (this.y - this.size < 0 || this.y + this.size > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                const img = planetImages[this.imageIndex];
+                if (img.complete) {
+                    ctx.drawImage(img, this.x - this.size, this.y - this.size, this.size * 2, this.size * 2);
+                }
+
+                if (this.orbitingAround) {
+                    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                    ctx.beginPath();
+                    ctx.arc(this.orbitingAround.x, this.orbitingAround.y, this.orbitRadius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function createPlanet(x, y) {
+            planets.push(new Planet(x, y));
+        }
+
+        let attractorActive = false;
+        let attractorX = 0;
+        let attractorY = 0;
+        let particles = [];
+
+        function createParticles(x, y) {
+            const particleColor = document.body.classList.contains('night-mode') ? '255, 255, 255' : '0, 0, 0';
+            const centerX = x;
+            const centerY = y;
+            const initialRadius = 20; // 初始半径
+            const maxRadius = 120; // 最大半径
+            for (let i = 0; i < 60; i++) { // 保持粒子数量
+                const angle = Math.random() * Math.PI * 2;
+                particles.push({
+                    centerX: centerX,
+                    centerY: centerY,
+                    radius: initialRadius,
+                    maxRadius: maxRadius,
+                    angle: angle,
+                    speed: 0.05 + Math.random() * 0.05,
+                    size: Math.random() * 3 + 1, // 粒子大小
+                    alpha: 1,
+                    color: particleColor,
+                    life: 1000 // 生命周期设置为1000毫秒（1秒）
+                });
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (document.body.classList.contains('day-mode')) {
+                updateAndDrawSolarSystem();
+            } else {
+                updateAndDrawGalaxy();
+            }
+
+            // 绘制粒子
+            particles.forEach((particle, index) => {
+                particle.angle += particle.speed;
+                particle.radius += (particle.maxRadius - particle.radius) * 0.03; // 逐渐增加半径
+                particle.x = particle.centerX + particle.radius * Math.cos(particle.angle);
+                particle.y = particle.centerY + particle.radius * Math.sin(particle.angle);
+                particle.life -= 16; // 假设动画以60fps运行，每帧减少16.67毫秒
+
+                // 计算透明度，随着半径增大而减小
+                particle.alpha = Math.max(0, 1 - (particle.radius / particle.maxRadius));
+
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${particle.color}, ${particle.alpha})`;
+                ctx.fill();
+
+                if (particle.life <= 0 || particle.alpha <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+
+            // 检查星球是否接触到粒子
+            for (let i = planets.length - 1; i >= 0; i--) {
+                const planet = planets[i];
+                let shouldRemove = false;
+
+                for (let j = 0; j < particles.length; j++) {
+                    const particle = particles[j];
+                    const dx = planet.x - particle.x;
+                    const dy = planet.y - particle.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < planet.size + particle.radius) {
+                        shouldRemove = true;
+                        break;
+                    }
+                }
+
+                if (shouldRemove) {
+                    planets.splice(i, 1);
+                    continue;
+                }
+
+                if (attractorActive) {
+                    const dx = attractorX - planet.x;
+                    const dy = attractorY - planet.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const force = 5 / distance; // 增加吸引力
+                    planet.vx += dx * force;
+                    planet.vy += dy * force;
+
+                    if (distance < 10) { // 增加消失距离
+                        planets.splice(i, 1); // 从数组中移除行星
+                        continue; // 跳过剩余的更新和绘制
+                    }
+                }
+
+                planet.update();
+                planet.draw();
+            }
+
+            for (let i = 0; i < planets.length; i++) {
+                for (let j = i + 1; j < planets.length; j++) {
+                    applyForces(planets[i], planets[j]);
+                }
+                if (!planets[i].orbitingAround) {
+                    checkOrbiting(planets[i]);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        function applyForces(p1, p2) {
+            if (p1.orbitingAround || p2.orbitingAround) return;
+
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < p1.size + p2.size) {
+                // 排斥
+                const angle = Math.atan2(dy, dx);
+                const repelForce = 0.05;
+                p1.vx -= Math.cos(angle) * repelForce;
+                p1.vy -= Math.sin(angle) * repelForce;
+                p2.vx += Math.cos(angle) * repelForce;
+                p2.vy += Math.sin(angle) * repelForce;
+            } else {
+                // 引力
+                const force = G * (p1.mass * p2.mass) / (distance * distance);
+                const angle = Math.atan2(dy, dx);
+                p1.vx += Math.cos(angle) * force / p1.mass;
+                p1.vy += Math.sin(angle) * force / p1.mass;
+                p2.vx -= Math.cos(angle) * force / p2.mass;
+                p2.vy -= Math.sin(angle) * force / p2.mass;
+            }
+        }
+
+        function checkOrbiting(planet) {
+            planets.forEach(other => {
+                if (other === planet || other.orbitingAround) return;
+
+                const dx = other.x - planet.x;
+                const dy = other.y - planet.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (other.size >= planet.size * 5 && distance <= other.size * 2 && planet.size === minSize) {
+                    planet.orbitingAround = other;
+                    planet.orbitRadius = other.size * 1.5;
+                    planet.orbitSpeed = 0.1 / Math.sqrt(planet.orbitRadius); // 增加公转速度
+                    planet.orbitAngle = Math.atan2(dy, dx);
+                }
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            if (e.clientX >= rect.left && e.clientX <= rect.right &&
+                e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                createPlanet(x, y);
+                console.log('Planet created at', x, y);
+            }
+        });
+
+        document.querySelectorAll('.links a').forEach(link => {
+            link.addEventListener('mouseenter', (e) => {
+                const rect = link.getBoundingClientRect();
+                attractorX = rect.left + rect.width / 2;
+                attractorY = rect.top + rect.height / 2;
+                attractorActive = true;
+                createParticles(attractorX, attractorY);
+            });
+
+            link.addEventListener('mouseleave', () => {
+                attractorActive = false;
+                // 快速消散现有粒子
+                particles.forEach(particle => {
+                    particle.life = Math.min(particle.life, 10);
+                });
+            });
+
+            link.addEventListener('mousemove', (e) => {
+                if (attractorActive) {
+                    createParticles(e.clientX, e.clientY);
+                }
+            });
+        });
+
+        let galaxyParticles = [];
+        let solarSystemObjects = [];
+
+        function createSolarSystem() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const sunRadius = 30;
+            
+            // 太阳
+            solarSystemObjects.push({
+                x: centerX,
+                y: centerY,
+                radius: sunRadius,
+                color: '#FDB813',
+                orbitRadius: 0,
+                speed: 0,
+                angle: 0
+            });
+
+            // 行星（简化版，不按实际比例）
+            const planets = [
+                { name: '水星', color: '#A9A9A9', radius: 5, orbitRadius: 60, speed: 0.02 },
+                { name: '金星', color: '#FFA500', radius: 8, orbitRadius: 90, speed: 0.015 },
+                { name: '地球', color: '#4169E1', radius: 9, orbitRadius: 130, speed: 0.01 },
+                { name: '火星', color: '#FF4500', radius: 7, orbitRadius: 180, speed: 0.008 },
+                { name: '木星', color: '#DEB887', radius: 20, orbitRadius: 250, speed: 0.005 },
+                { name: '土星', color: '#F4A460', radius: 17, orbitRadius: 320, speed: 0.003 },
+                { name: '天王星', color: '#40E0D0', radius: 14, orbitRadius: 380, speed: 0.002 }, // 添加天王星
+                { name: '海王星', color: '#4169E1', radius: 13, orbitRadius: 440, speed: 0.0015 } // 添加海王星
+            ];
+
+            planets.forEach(planet => {
+                solarSystemObjects.push({
+                    ...planet,
+                    x: centerX + planet.orbitRadius,
+                    y: centerY,
+                    angle: Math.random() * Math.PI * 2
+                });
+            });
+        }
+
+        function createGalaxy() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const numParticles = 4000; // 减少粒子总数
+            const spiralArms = 3;
+            const maxRadius = Math.min(canvas.width, canvas.height) * 0.45;
+
+            for (let i = 0; i < numParticles; i++) {
+                const distance = Math.pow(Math.random(), 0.3) * maxRadius; // 调整分布，使中心更密集，周围更稀疏
+                const angle = Math.random() * Math.PI * 2;
+                const armOffset = (i % spiralArms) * (Math.PI * 2 / spiralArms);
+                
+                // 根据距离调整颜色和亮度
+                const brightness = Math.max(0.2, 1 - Math.pow(distance / maxRadius, 0.5));
+                const r = 255;
+                const g = Math.floor(200 + brightness * 55);
+                const b = Math.floor(200 + brightness * 55);
+                const alpha = 0.1 + brightness * 0.9; // 调整不透明度，使周围更透明
+                
+                galaxyParticles.push({
+                    x: centerX + distance * Math.cos(angle + armOffset + distance * 0.01),
+                    y: centerY + distance * Math.sin(angle + armOffset + distance * 0.01),
+                    radius: Math.random() * 1.5 + 0.5 + (1 - distance / maxRadius) * 2, // 调整粒子大小
+                    color: `rgba(${r}, ${g}, ${b}, ${alpha})`,
+                    angle: angle,
+                    distance: distance,
+                    speed: 0.0001 + Math.random() * 0.0002 + (1 - distance / maxRadius) * 0.0003 // 调整速度
+                });
+            }
+        }
+
+        let galaxyRotation = 0;
+
+        function updateAndDrawGalaxy() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const maxRadius = Math.min(canvas.width, canvas.height) * 0.45;
+
+            galaxyRotation += 0.0003; // 稍微减慢整体旋转速度
+
+            ctx.beginPath();
+            galaxyParticles.forEach(particle => {
+                particle.angle += particle.speed;
+                const rotatedAngle = particle.angle + galaxyRotation;
+                particle.x = centerX + particle.distance * Math.cos(rotatedAngle + particle.distance * 0.01);
+                particle.y = centerY + particle.distance * Math.sin(rotatedAngle + particle.distance * 0.01);
+
+                ctx.moveTo(particle.x, particle.y);
+                ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+            });
+            ctx.fillStyle = 'white';
+            ctx.fill();
+
+            // 添加一个更强的径向渐变来增强中心的亮度
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxRadius * 0.5);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+            gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.6)');
+            gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.3)');
+            gradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.1)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }
+
+        function updateAndDrawSolarSystem() {
+            solarSystemObjects.forEach(obj => {
+                obj.angle += obj.speed;
+                obj.x = canvas.width / 2 + obj.orbitRadius * Math.cos(obj.angle);
+                obj.y = canvas.height / 2 + obj.orbitRadius * Math.sin(obj.angle);
+
+                // 绘制轨道
+                if (obj.orbitRadius > 0) {
+                    ctx.beginPath();
+                    ctx.arc(canvas.width / 2, canvas.height / 2, obj.orbitRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(200, 200, 200, 0.3)';
+                    ctx.stroke();
+                }
+
+                // 绘制行星
+                ctx.beginPath();
+                ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
+                ctx.fillStyle = obj.color;
+                ctx.fill();
+            });
+        }
+
+        // 在初始化部分添加
+        createSolarSystem();
+        createGalaxy();
+
+        animate();
+
+        setInterval(() => {
+            console.log('Number of planets:', planets.length);
+        }, 5000);
+
+        const modeToggle = document.getElementById('mode-toggle');
+        modeToggle.addEventListener('click', function(event){
+            document.body.classList.toggle('day-mode');
+            document.body.classList.toggle('night-mode');
+            modeToggle.querySelector('.icon').style.transform = 'rotate(360deg)';
+            setTimeout(() => {
+                modeToggle.querySelector('.icon').style.transform = 'rotate(0deg)';
+            }, 500);
+            event.stopPropagation();
+        });
+
+        function setInitialMode() {
+            const now = new Date();
+            const hours = now.getHours();
+            if (hours >= 6 && hours < 18) {
+                document.body.classList.add('day-mode');
+                document.body.classList.remove('night-mode');
+            } else {
+                document.body.classList.add('night-mode');
+                document.body.classList.remove('day-mode');
+            }
+        }
+
+        setInitialMode();
+    </script>
+</body>
+</html>

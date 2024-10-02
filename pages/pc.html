@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人门户 - Ethan</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            height: 100%;
+            overflow: hidden;
+            transition: background-color 0.5s ease;
+        }
+        body.day-mode {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        body.night-mode {
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+        }
+        .page {
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+        .background-box {
+            width: 50%;
+            height: 96%;
+            border-radius: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: absolute;
+            top: 2%;
+            right: 1%;
+            transition: background-color 0.5s ease;
+        }
+        .day-mode .background-box {
+            background-color: #000;
+        }
+        .night-mode .background-box {
+            background-color: #fff;
+        }
+        #mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .day-mode #mode-toggle {
+            background-color: #333;
+        }
+        .night-mode #mode-toggle {
+            background-color: #fff;
+        }
+        #mode-toggle .icon {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.5s ease;
+        }
+        .day-mode #mode-toggle .icon {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/></svg>') no-repeat center center;
+        }
+        .night-mode #mode-toggle .icon {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z"/></svg>') no-repeat center center;
+        }
+        .container, #solar-system {
+            width: 50%;
+            position: relative;
+            z-index: 2;
+        }
+        .container {
+            width: 48%; /* 减小宽度 */
+            height: 96%; /* 减小高度 */
+            margin: 2% 0 2% 2%; /* 添加上下左边距 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .intro-box {
+            height: 68%; /* 调整高度 */
+            width: 100%; /* 使用全宽 */
+            overflow-y: auto;
+        }
+        #solar-system {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+        }
+        .intro-box {
+            width: 90%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            position: relative;
+            overflow: hidden;
+            transition: background-color 0.5s ease, box-shadow 0.5s ease;
+            margin-bottom: 30px;
+        }
+        .day-mode .intro-box {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        .night-mode .intro-box {
+            background: rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.1);
+        }
+        .intro-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.3), transparent 30%);
+            animation: rotate 4s linear infinite;
+        }
+        .night-mode .intro-box::before {
+            background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.1), transparent 30%);
+        }
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        .gradient-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            display: inline-block;
+            transition: background-image 0.5s ease;
+        }
+        .day-mode .gradient-text {
+            background-image: linear-gradient(45deg, #00ff00, #0000ff);
+        }
+        .night-mode .gradient-text {
+            background-image: linear-gradient(45deg, #ffff00, #ff0000);
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 1.2em;
+            max-width: 600px;
+            text-align: left;
+            line-height: 1.6;
+        }
+        #avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+        }
+        #solar-system-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .info-box {
+            height: 28%; /* 调整高度 */
+            width: 100%; /* 使用全宽 */
+            margin-bottom: 2%; /* 添加底部间距 */
+        }
+        #weather-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .info-box {
+            width: 90%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.5s ease, box-shadow 0.5s ease;
+        }
+        .day-mode .info-box {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .night-mode .info-box {
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 16px 0 rgba(255, 255, 255, 0.1);
+        }
+        .info-item {
+            text-align: center;
+        }
+        .info-item p {
+            margin: 5px 0;
+            font-size: 1em;
+        }
+        .info-item .value {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .info-box, .intro-box {
+            width: 85%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: background-color 0.5s ease, box-shadow 0.5s ease;
+        }
+        
+        .info-box {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* 添加媒体查询，在小屏幕设备上隐藏桌面版内容 */
+        @media (max-width: 768px) {
+            .page {
+                display: none;
+            }
+        }
+    </style>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"> 
+</head>
+<body class="day-mode">
+    <button id="mode-toggle"><div class="icon"></div></button>
+    
+    <div class="page" id="main-page">
+        <div class="background-box"></div>
+        <div class="container">
+            <div class="info-box">
+                <canvas id="weather-canvas"></canvas>
+                <div class="info-item">
+                    <p>日期</p>
+                    <p class="value" id="date"></p>
+                </div>
+                <div class="info-item">
+                    <p>时间</p>
+                    <p class="value" id="time"></p>
+                </div>
+                <div class="info-item">
+                    <p>天气</p>
+                    <p class="value" id="weather">加载中...</p>
+                </div>
+            </div>
+            <div class="intro-box">
+                <img id="avatar" src="" alt="头像">
+                <h1 class="gradient-text"></h1>
+                <p class="gradient-text" id="description"></p>
+                <p class="gradient-text" id="details"></p>
+            </div>
+        </div>
+        <div id="solar-system">
+            <canvas id="solar-system-canvas"></canvas>
+        </div>
+    </div>
+
+    <script src="../config.js"></script>
+    <script>
+        // 填充个人信息
+        document.getElementById('avatar').src = siteConfig.introduction.avatar;
+        document.querySelector('.intro-box h1').textContent = siteConfig.introduction.name;
+        document.getElementById('description').textContent = siteConfig.introduction.description;
+        document.getElementById('details').textContent = siteConfig.introduction.details;
+
+        // 使用配置中的行星数据
+        const planetData = siteConfig.sites.map((site, index) => ({
+            name: site.name,
+            link: site.url,
+            image: site.image,
+            size: 20 * (1 - index * 0.1)  // 自动缩小行星大小
+        }));
+
+        const canvas = document.getElementById('solar-system-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const maxOrbit = Math.min(canvas.width, canvas.height) * 0.4;
+
+        const planets = planetData.map((planet, index) => {
+            const orbitRadius = ((index + 1) / planetData.length) * maxOrbit;
+            return {
+                ...planet,
+                orbitRadius,
+                angle: Math.random() * Math.PI * 2,
+                speed: 0.002 / Math.sqrt(orbitRadius) * (index + 1),
+                hovered: false
+            };
+        });
+
+        const planetImages = {};
+
+        function drawPlanet(planet) {
+            const x = centerX + Math.cos(planet.angle) * planet.orbitRadius;
+            const y = centerY + Math.sin(planet.angle) * planet.orbitRadius;
+
+            // 根据当前模式决定轨道颜色
+            const isDayMode = document.body.classList.contains('day-mode');
+            const orbitColor = isDayMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)';
+
+            // 绘制公转轨道
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, planet.orbitRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = orbitColor;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            if (planetImages[planet.name]) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(x, y, planet.size * (planet.hovered ? 1.2 : 1), 0, Math.PI * 2);
+                ctx.clip();
+                ctx.drawImage(planetImages[planet.name], x - planet.size, y - planet.size, planet.size * 2, planet.size * 2);
+                ctx.restore();
+            } else {
+                // 如果图片未加载，绘制一个占位圆
+                ctx.beginPath();
+                ctx.arc(x, y, planet.size, 0, Math.PI * 2);
+                ctx.fillStyle = isDayMode ? '#000' : '#fff';
+                ctx.fill();
+            }
+
+            if (planet.hovered) {
+                ctx.beginPath();
+                ctx.arc(x, y, planet.size * 1.2, 0, Math.PI * 2);
+                ctx.strokeStyle = isDayMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            // 调整文字颜色以适应背景
+            const textColor = isDayMode ? '#fff' : '#000';
+            const textStrokeColor = isDayMode ? '#000' : '#fff';
+
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = textColor;
+            ctx.strokeStyle = textStrokeColor;
+            ctx.lineWidth = 3;
+            ctx.strokeText(planet.name, x, y + planet.size + 15);
+            ctx.fillText(planet.name, x, y + planet.size + 15);
+        }
+
+        function loadImages() {
+            planets.forEach(planet => {
+                const img = new Image();
+                img.src = planet.image;
+                img.onload = () => {
+                    planetImages[planet.name] = img;
+                };
+                img.onerror = () => {
+                    console.error(`Failed to load image for ${planet.name}`);
+                };
+            });
+        }
+
+        // 确保在页面加载完成后调用 loadImages
+        window.addEventListener('load', loadImages);
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            planets.forEach(planet => {
+                planet.angle += planet.speed;
+                drawPlanet(planet);
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            planets.forEach((planet) => {
+                const planetX = centerX + Math.cos(planet.angle) * planet.orbitRadius;
+                const planetY = centerY + Math.sin(planet.angle) * planet.orbitRadius;
+                const distance = Math.sqrt((x - planetX) ** 2 + (y - planetY) ** 2);
+
+                planet.hovered = distance <= planet.size;
+            });
+        });
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            planets.forEach((planet) => {
+                const planetX = centerX + Math.cos(planet.angle) * planet.orbitRadius;
+                const planetY = centerY + Math.sin(planet.angle) * planet.orbitRadius;
+                const distance = Math.sqrt((x - planetX) ** 2 + (y - planetY) ** 2);
+
+                if (distance <= planet.size) {
+                    window.open(planet.link, '_blank');
+                }
+            });
+        });
+
+        function setInitialMode() {
+            const now = new Date();
+            const hours = now.getHours();
+            if (hours >= 6 && hours < 18) {
+                document.body.classList.add('day-mode');
+                document.body.classList.remove('night-mode');
+            } else {
+                document.body.classList.add('night-mode');
+                document.body.classList.remove('day-mode');
+            }
+        }
+
+        setInitialMode();
+
+        document.getElementById('mode-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('day-mode');
+            document.body.classList.toggle('night-mode');
+            
+            // 更新太阳系绘制
+            planets.forEach(planet => planet.hovered = false);
+            animate();
+        });
+
+        // 更新日期和时间
+        function updateDateTime() {
+            const now = new Date();
+            const dateElement = document.getElementById('date');
+            const timeElement = document.getElementById('time');
+
+            dateElement.textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+            timeElement.textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        // 每秒更新一次时间
+        setInterval(updateDateTime, 1000);
+        updateDateTime(); // 初始化
+
+        const weatherCanvas = document.getElementById('weather-canvas');
+        const weatherCtx = weatherCanvas.getContext('2d');
+
+        function resizeWeatherCanvas() {
+            weatherCanvas.width = weatherCanvas.offsetWidth;
+            weatherCanvas.height = weatherCanvas.offsetHeight;
+        }
+
+        window.addEventListener('resize', resizeWeatherCanvas);
+        resizeWeatherCanvas();
+
+        function drawSunshine() {
+            weatherCtx.clearRect(0, 0, weatherCanvas.width, weatherCanvas.height);
+            const centerX = weatherCanvas.width / 2;
+            const centerY = weatherCanvas.height / 2;
+            const radius = Math.min(centerX, centerY) / 3;
+
+            // 创建径向渐变
+            const gradient = weatherCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+            gradient.addColorStop(0, 'rgba(255, 255, 0, 1)');
+            gradient.addColorStop(0.7, 'rgba(255, 165, 0, 1)');
+            gradient.addColorStop(1, 'rgba(255, 165, 0, 0)');
+
+            // 绘制太阳
+            weatherCtx.beginPath();
+            weatherCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            weatherCtx.fillStyle = gradient;
+            weatherCtx.fill();
+
+            // 添加光晕效果
+            weatherCtx.globalCompositeOperation = 'lighter';
+            weatherCtx.beginPath();
+            weatherCtx.arc(centerX, centerY, radius * 1.2, 0, Math.PI * 2);
+            weatherCtx.fillStyle = 'rgba(255, 255, 200, 0.3)';
+            weatherCtx.fill();
+            weatherCtx.globalCompositeOperation = 'source-over';
+        }
+
+        function drawRain() {
+            const raindrops = [];
+            for (let i = 0; i < 100; i++) {
+                raindrops.push({
+                    x: Math.random() * weatherCanvas.width,
+                    y: Math.random() * weatherCanvas.height,
+                    length: Math.random() * 20 + 10,
+                    speed: Math.random() * 5 + 5
+                });
+            }
+
+            function animateRain() {
+                weatherCtx.clearRect(0, 0, weatherCanvas.width, weatherCanvas.height);
+                weatherCtx.strokeStyle = 'rgba(174, 194, 224, 0.5)';
+                weatherCtx.lineWidth = 1;
+
+                raindrops.forEach(drop => {
+                    weatherCtx.beginPath();
+                    weatherCtx.moveTo(drop.x, drop.y);
+                    weatherCtx.lineTo(drop.x, drop.y + drop.length);
+                    weatherCtx.stroke();
+
+                    drop.y += drop.speed;
+                    if (drop.y > weatherCanvas.height) {
+                        drop.y = -drop.length;
+                        drop.x = Math.random() * weatherCanvas.width;
+                    }
+                });
+
+                requestAnimationFrame(animateRain);
+            }
+
+            animateRain();
+        }
+
+        function drawWind() {
+            const particles = [];
+            for (let i = 0; i < 50; i++) {
+                particles.push({
+                    x: Math.random() * weatherCanvas.width,
+                    y: Math.random() * weatherCanvas.height,
+                    length: Math.random() * 20 + 10,
+                    speed: Math.random() * 3 + 2
+                });
+            }
+
+            function animateWind() {
+                weatherCtx.clearRect(0, 0, weatherCanvas.width, weatherCanvas.height);
+                weatherCtx.strokeStyle = 'rgba(200, 200, 200, 0.5)';
+                weatherCtx.lineWidth = 1;
+
+                particles.forEach(particle => {
+                    weatherCtx.beginPath();
+                    weatherCtx.moveTo(particle.x, particle.y);
+                    weatherCtx.lineTo(particle.x + particle.length, particle.y);
+                    weatherCtx.stroke();
+
+                    particle.x += particle.speed;
+                    if (particle.x > weatherCanvas.width) {
+                        particle.x = -particle.length;
+                        particle.y = Math.random() * weatherCanvas.height;
+                    }
+                });
+
+                requestAnimationFrame(animateWind);
+            }
+
+            animateWind();
+        }
+
+        async function getWeather() {
+            const weatherDiv = document.getElementById('weather');
+            try {
+                const params = new URLSearchParams(siteConfig.weatherAPI.params);
+                const response = await fetch(`${siteConfig.weatherAPI.url}?${params}`);
+                const data = await response.json();
+                if (data.code === 200) {
+                    const weatherDescription = data.weather;
+                    weatherDiv.innerHTML = `
+                        <div>${data.city}</div>
+                        <div>${data.temperature}°C</div>
+                        <div>${weatherDescription}</div>
+                    `;
+                    
+                    if (weatherDescription.includes('晴')) {
+                        drawSunshine();
+                    } else if (weatherDescription.includes('雨')) {
+                        drawRain();
+                    } else if (weatherDescription.includes('风')) {
+                        drawWind();
+                    }
+                } else {
+                    throw new Error('Weather API returned non-200 status code');
+                }
+            } catch (error) {
+                console.error('获取天气信息时出错:', error);
+                weatherDiv.textContent = '天气信息暂时无法获取';
+            }
+        }
+
+        getWeather();
+        setInterval(getWeather, 30 * 60 * 1000); // 每30分钟更新一次天气
+    </script>
+    <!-- 添加移动端页面链接 -->>
+    <script>
+        if (window.innerWidth <= 768) {
+            window.location.href = 'mobile.html';
+        }
+    </script>
+</body>
+</html>
