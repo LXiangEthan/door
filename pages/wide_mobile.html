@@ -133,6 +133,51 @@
             margin: 0 auto 20px;
             display: block;
         }
+        .intro-box {
+            height: 50vh;
+            width: 90%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .scrollable-content {
+            position: relative;
+            overflow-y: auto;
+            height: 30vh; /* 降低高度 */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.5) rgba(0, 0, 0, 0.1);
+        }
+        .scrollable-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .scrollable-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+        .scrollable-content::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+        }
+        .scroll-text {
+            transition: transform 0.5s ease-in-out;
+        }
+        #description {
+            margin-bottom: 10px;
+        }
+        /* 自定义滚动条样式 */
+        .scrollable-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        .scrollable-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .scrollable-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
     </style>
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"> 
 </head>
@@ -140,10 +185,16 @@
     <canvas id="canvas-background"></canvas>
     <button id="mode-toggle"><div class="icon"></div></button>
     <div class="container">
-        <img id="avatar" src="https://ethanliang.top/upload/20171014085116_A38Qr-wgme.png" alt="头像">
-        <h1 class="gradient-text">Ethan</h1>
-        <p class="gradient-text">网站开发者 | 编程爱好者 | 技术工作者</p>
-        <p class="gradient-text">欢迎来到我的个人门户网站，我是一位个人开发者，如果你对我感兴趣，可以通过下面路径了解我，我们一起钻研技术，一起学习，一起探讨问题，如果你对其他的感兴趣我们也可以聊一聊</p>
+        <div class="intro-box">
+            <img id="avatar" src="" alt="头像">
+            <h1 class="gradient-text"></h1>
+            <p class="gradient-text" id="description"></p>
+            <div class="scrollable-content">
+                <div class="scroll-text">
+                    <p class="gradient-text" id="details"></p>
+                </div>
+            </div>
+        </div>
         <div class="links">
             <a href="https://github.com/LXiangEthan" target="_blank">GitHub</a>
             <a href="https://alist.ethanliang.top" target="_blank">Alist</a>
@@ -153,6 +204,7 @@
         </div>
     </div>
 
+    <script src="../config.js"></script>
     <script>
         const canvas = document.getElementById('canvas-background');
         const ctx = canvas.getContext('2d');
@@ -601,6 +653,67 @@
         }
 
         setInitialMode();
+
+        // 填充个人信息
+        document.getElementById('avatar').src = siteConfig.introduction.avatar;
+        document.querySelector('.intro-box h1').textContent = siteConfig.introduction.name;
+        document.getElementById('description').textContent = siteConfig.introduction.description;
+        document.getElementById('details').textContent = siteConfig.introduction.details;
+
+        function setupAutoScroll() {
+            const container = document.querySelector('.scrollable-content');
+            const content = container.querySelector('.scroll-text');
+            
+            if (content.offsetHeight > container.offsetHeight) {
+                let scrollPosition = 0;
+                const scrollHeight = content.offsetHeight;
+                const containerHeight = container.offsetHeight;
+                const scrollSpeed = 0.5;
+                let scrollingDown = true;
+                let autoScrolling = true;
+
+                function scroll() {
+                    if (!autoScrolling) return;
+
+                    if (scrollingDown) {
+                        scrollPosition += scrollSpeed;
+                        if (scrollPosition >= scrollHeight - containerHeight) {
+                            scrollingDown = false;
+                            setTimeout(() => {
+                                scrollingDown = true;
+                                scrollPosition = 0;
+                            }, 2000);
+                        }
+                    } else {
+                        return;
+                    }
+
+                    container.scrollTop = scrollPosition;
+                    requestAnimationFrame(scroll);
+                }
+
+                scroll();
+
+                container.addEventListener('scroll', () => {
+                    if (Math.abs(container.scrollTop - scrollPosition) > 10) {
+                        autoScrolling = false;
+                    }
+                });
+
+                container.addEventListener('touchstart', () => {
+                    autoScrolling = false;
+                });
+
+                container.addEventListener('touchend', () => {
+                    autoScrolling = true;
+                    scrollPosition = container.scrollTop;
+                    scroll();
+                });
+            }
+        }
+
+        // 在页面加载完成后调用
+        window.addEventListener('load', setupAutoScroll);
     </script>
 </body>
 </html>
