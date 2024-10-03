@@ -93,7 +93,7 @@
         .intro-box {
             height: 68%; /* 调整高度 */
             width: 100%; /* 使用全宽 */
-            overflow-y: auto;
+            overflow-y: auto; /* 添加垂直滚动 */
         }
         #solar-system {
             position: absolute;
@@ -247,6 +247,31 @@
                 display: none;
             }
         }
+        .scrollable-content {
+            position: relative;
+            overflow-y: auto;
+            height: calc(100% - 200px); /* 调整高度，减去头像和标题的高度 */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.5) rgba(0, 0, 0, 0.1);
+        }
+        
+        .scrollable-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .scrollable-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+        
+        .scrollable-content::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+        }
+        .scroll-text {
+            transition: transform 0.5s ease-in-out;
+        }
     </style>
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"> 
 </head>
@@ -274,8 +299,12 @@
             <div class="intro-box">
                 <img id="avatar" src="" alt="头像">
                 <h1 class="gradient-text"></h1>
-                <p class="gradient-text" id="description"></p>
-                <p class="gradient-text" id="details"></p>
+                <div class="scrollable-content">
+                    <div class="scroll-text">
+                        <p class="gradient-text" id="description"></p>
+                        <p class="gradient-text" id="details"></p>
+                    </div>
+                </div>
             </div>
         </div>
         <div id="solar-system">
@@ -621,6 +650,61 @@
         if (window.innerWidth <= 768) {
             window.location.href = 'mobile.html';
         }
+    </script>
+    <script>
+        function setupAutoScroll() {
+            const container = document.querySelector('.scrollable-content');
+            const content = container.querySelector('.scroll-text');
+            
+            if (content.offsetHeight > container.offsetHeight) {
+                let scrollPosition = 0;
+                const scrollHeight = content.offsetHeight;
+                const containerHeight = container.offsetHeight;
+                const scrollSpeed = 0.5;
+                let scrollingDown = true;
+                let autoScrolling = true;
+
+                function scroll() {
+                    if (!autoScrolling) return;
+
+                    if (scrollingDown) {
+                        scrollPosition += scrollSpeed;
+                        if (scrollPosition >= scrollHeight - containerHeight) {
+                            scrollingDown = false;
+                            setTimeout(() => {
+                                scrollingDown = true;
+                                scrollPosition = 0;
+                            }, 2000);
+                        }
+                    } else {
+                        return;
+                    }
+
+                    container.scrollTop = scrollPosition;
+                    requestAnimationFrame(scroll);
+                }
+
+                scroll();
+
+                container.addEventListener('scroll', () => {
+                    if (Math.abs(container.scrollTop - scrollPosition) > 10) {
+                        autoScrolling = false;
+                    }
+                });
+
+                container.addEventListener('mouseover', () => {
+                    autoScrolling = false;
+                });
+
+                container.addEventListener('mouseout', () => {
+                    autoScrolling = true;
+                    scrollPosition = container.scrollTop;
+                    scroll();
+                });
+            }
+        }
+
+        window.addEventListener('load', setupAutoScroll);
     </script>
 </body>
 </html>
