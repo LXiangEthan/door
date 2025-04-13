@@ -9,7 +9,7 @@ const siteConfig = {
     title: "Ethan的个人门户",
     introduction: {
         name: "Ethan",
-        avatar: "https://ethanliang.top/upload/20171014085116_A38Qr-wgme.png",
+        avatar: "https://s21.ax1x.com/2025/04/13/pEWShOU.png",
         description: "网站开发者 | 编程爱好者 | 技术工作者",
         details: `
         你好！欢迎来到我的个人门户网站。我是 Ethan，一名充满热情的网站开发者、编程爱好者以及专注的技术工作者。
